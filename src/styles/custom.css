@@ -1,0 +1,175 @@
+html {
+  scroll-behavior: smooth;
+}
+
+/* Navbar Hover Effect */
+.navbar .MuiButton-root:hover {
+  color: #fff;
+  background-color: #D1C72E;
+  transition: all 0.3s ease;
+}
+
+/* Explore Button */
+.explore-btn {
+  border: 2px solid #D1C72E;
+  color: #D1C72E;
+  background: transparent;
+  font-weight: bold;
+  padding: 14px 30px;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.explore-btn:hover {
+  background-color: #D1C72E;
+  color: #111;
+  transform: scale(1.08);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Hero Section */
+.hero-section {
+  background-image: url('../../public/pic/banner-page1.png');
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  padding: 200px 20px;
+  color: white;
+  position: relative;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.7);
+}
+
+.hero-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  color: #D1C72E;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 3.8rem;
+  margin-bottom: 30px;
+  animation: fadeIn 1.5s ease;
+}
+
+/* Footer */
+.footer {
+  background-color: #111;
+  color: white;
+  text-align: center;
+  padding: 20px 10px;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+/* Card Hover Effects */
+.MuiCard-root, .team-card {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  border-radius: 12px;
+}
+
+.MuiCard-root:hover, .team-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+/* Years Hero Section */
+.years-hero {
+  background-image: url('../../public/pic/banner-page1.png');
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  padding: 120px 20px;
+  color: white;
+  position: relative;
+}
+
+.years-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.7);
+}
+
+.years-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Button General Hover */
+.MuiButton-root {
+  transition: all 0.3s ease;
+}
+
+.MuiButton-root:hover {
+  background-color: #D1C72E;
+  color: #111;
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+}
+
+/* About Hero Section */
+.about-hero {
+  background-image: url('../../public/pic/banner-page1.png');
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  padding: 150px 20px;
+  position: relative;
+  color: white;
+}
+
+.about-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.7);
+}
+
+.about-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.about-title {
+  color: #D1C72E;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 3.2rem;
+  animation: fadeIn 1.5s ease;
+}
+
+/* Card Text Styling */
+.card-content p, .card-content h5 {
+  color: #444;
+  line-height: 1.7;
+}
+
+.card-content h5 {
+  color: #D1C72E;
+  margin-bottom: 10px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
