@@ -1,15 +1,28 @@
-import axios from 'axios';
+export const fetchSparqlResults = async (query) => {
+  const proxyUrl = "http://localhost:4000/sparql";
+  const targetEndpoint = "https://blazegraph.virtualtreasury.ie/blazegraph/namespace/b2022/sparql";
 
-const endpoint = process.env.REACT_APP_SPARQL_ENDPOINT;
+  const response = await fetch(proxyUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/sparql-results+json",
+    },
+    body: JSON.stringify({
+      endpoint: targetEndpoint,
+      query: query,
+    }),
+  });
 
-export const runQuery = async (query) => {
-  const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-  const body = `query=${encodeURIComponent(query)}`;
+  if (!response.ok) {
+    throw new Error(`SPARQL fetch failed with status ${response.status}`);
+  }
+
+  const text = await response.text();
+
   try {
-    const response = await axios.post(endpoint, body, { headers });
-    return response.data.results.bindings;
-  } catch (error) {
-    console.error('SPARQL query failed:', error);
-    return [];
+    return JSON.parse(text);
+  } catch {
+    return text;
   }
 };
