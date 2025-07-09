@@ -151,4 +151,6 @@
     text-decoration: underline;
   }
 
-  
+  .vis-time-axis .vis-text{
+    color: #ffffff !important;
+  }

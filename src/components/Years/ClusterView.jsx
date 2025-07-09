@@ -2,60 +2,90 @@
 import React, { useState, useRef, useEffect } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
+// AOI color palette (should match timeline view)
+const AOI_COLORS = [
+  '#2196F3', // blue
+  '#D1C72E', // gold
+  '#21CBF3', // cyan
+  '#FF7043', // orange
+  '#AB47BC', // purple
+  '#66BB6A', // green
+  '#FFA726', // amber
+  '#EC407A', // pink
+  '#29B6F6', // light blue
+  '#8D6E63', // brown
+];
+function getAoiColor(aoi, aoiList) {
+  const idx = aoiList.indexOf(aoi);
+  return AOI_COLORS[idx % AOI_COLORS.length];
+}
+
+function getInitials(name) {
+  if (!name) return '';
+  const parts = name.split(/\s+/);
+  if (parts.length === 1) return parts[0][0];
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 /**
  * Build bipartite nodes:
  * - Person nodes: one per person
  * - AOI nodes: one per unique AOI
  * Then link each Person to each AOI they have.
  */
-function buildBipartiteGraph(results) {
+function buildRadialGraph(results) {
   // 1) Collect all unique AOIs
   const aoiSet = new Set();
-  // We'll store persons in an array
-  const personNodes = results.map((item, i) => {
-    // If item has multiple AOIs, or a single aoi property
-    // We'll assume item.aois is an array of AOI strings
-    // If you only have `item.aoi`, wrap it in an array: [item.aoi]
-    // Or if you have item.aoi_label, use that
+  results.forEach(item => {
     const aois = Array.isArray(item.aois) ? item.aois : [item.aoi];
-    aois.forEach((a) => aoiSet.add(a));
-    return {
-      id: `person-${i}`,
-      type: "person",
-      name: item.name,
-      uri: item.uri,
-      aois
-    };
+    aois.forEach(a => aoiSet.add(a));
   });
-
+  const aoiList = Array.from(aoiSet);
   // 2) Create AOI nodes
-  const aoiNodes = Array.from(aoiSet).map((aoi, i) => ({
+  const aoiNodes = aoiList.map((aoi, i) => ({
     id: `aoi-${i}`,
     type: "aoi",
-    aoi
+    aoi,
+    color: getAoiColor(aoi, aoiList),
+    fx: 400 + 300 * Math.cos((2 * Math.PI * i) / aoiList.length),
+    fy: 300 + 200 * Math.sin((2 * Math.PI * i) / aoiList.length),
   }));
-
-  // 3) Build links: Person -> AOI
+  // 3) Create person nodes and links
+  const nodes = [...aoiNodes];
   const links = [];
-  personNodes.forEach((person) => {
-    person.aois.forEach((a) => {
-      const aoiNode = aoiNodes.find((n) => n.aoi === a);
-      if (aoiNode) {
-        links.push({ source: person.id, target: aoiNode.id });
-      }
+  results.forEach((item, i) => {
+    const aois = Array.isArray(item.aois) ? item.aois : [item.aoi];
+    aois.forEach(aoi => {
+      const aoiIdx = aoiList.indexOf(aoi);
+      const angle = Math.random() * 2 * Math.PI;
+      const radius = 70 + Math.random() * 30;
+      const fx = aoiNodes[aoiIdx].fx + radius * Math.cos(angle);
+      const fy = aoiNodes[aoiIdx].fy + radius * Math.sin(angle);
+      const personNode = {
+        id: `person-${i}-${aoiIdx}`,
+        type: "person",
+        name: item.name,
+        uri: item.uri,
+        birth: item.birth,
+        death: item.death,
+        color: getAoiColor(aoi, aoiList),
+        aoi,
+        fx,
+        fy,
+        initials: getInitials(item.name),
+      };
+      nodes.push(personNode);
+      links.push({ source: personNode.id, target: aoiNodes[aoiIdx].id, color: personNode.color });
     });
   });
-
-  // 4) Combine into one node list
-  const nodes = [...personNodes, ...aoiNodes];
-  return { nodes, links };
+  return { nodes, links, aoiList, aoiNodes };
 }
 
 const BipartiteClusterView = ({ results }) => {
   console.log("BipartiteClusterView => results:", results);
 
   // Build the bipartite graph from your results
-  const { nodes, links } = buildBipartiteGraph(results);
+  const { nodes, links, aoiList, aoiNodes } = buildRadialGraph(results);
 
   // ForceGraph reference
   const fgRef = useRef();
@@ -84,86 +114,122 @@ const BipartiteClusterView = ({ results }) => {
     });
   }
 
-  // Assign colors: Person vs AOI
-  const nodeColor = (node) => {
-    if (node.type === "person") return "#4F5D75"; // dusty blue
-    if (node.type === "aoi") return "#EF8354";    // soft coral
-    return "#999";
-  };
+  // Node color
+  const nodeColor = (node) => node.color;
 
-  // Node labels
+  // Node label (tooltip only)
   const nodeLabel = (node) => {
     if (node.type === "person") {
-      return `Person: ${node.name}`;
+      return `${node.name}\n${node.birth ? `Birth: ${node.birth}` : ""}${node.death ? `\nDeath: ${node.death}` : ""}`;
     } else {
       return `AOI: ${node.aoi}`;
     }
   };
 
+  // Node rendering
+  const nodeCanvasObjectMode = (node) => {
+    // Only use 'before' for person nodes so AOI nodes remain fully interactive
+    return node.type === 'person' ? 'before' : undefined;
+  };
+
+  const nodeCanvasObject = (node, ctx, globalScale) => {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (node.type === "aoi") {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 32, 0, 2 * Math.PI, false);
+      ctx.fillStyle = node.color;
+      ctx.shadowColor = node.color;
+      ctx.shadowBlur = 18;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#fff";
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#fff";
+      ctx.globalAlpha = 1;
+      ctx.font = `bold ${Math.max(18, 22/globalScale)}px Inter,Roboto,sans-serif`;
+      ctx.fillText(node.aoi, node.x, node.y);
+    } else {
+      // Person node: show only initials, full name on hover
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 13, 0, 2 * Math.PI, false);
+      ctx.fillStyle = node.color;
+      ctx.shadowColor = node.color;
+      ctx.shadowBlur = highlightNodes.has(node.id) ? 16 : 6;
+      ctx.globalAlpha = highlightNodes.has(node.id) ? 1 : 0.85;
+      ctx.fill();
+      ctx.lineWidth = highlightNodes.has(node.id) ? 3 : 1.5;
+      ctx.strokeStyle = highlightNodes.has(node.id) ? "#fff" : node.color;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${Math.max(11, 13/globalScale)}px Inter,Roboto,sans-serif`;
+      ctx.fillText(node.initials, node.x, node.y);
+    }
+    ctx.restore();
+  };
+
   if (!nodes.length) {
-    return <div style={{ margin: 20 }}>No data for cluster view.</div>;
+    return <div style={{ margin: 20, color: '#fff' }}>No data for cluster view.</div>;
   }
   if (nodes.length === 1) {
-    return <div style={{ margin: 20 }}>Only one record found. Not enough for a cluster graph.</div>;
+    return <div style={{ margin: 20, color: '#fff' }}>Only one record found. Not enough for a cluster graph.</div>;
   }
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* Optional Legend */}
-      <div style={{ position: "absolute", top: 0, left: 0, padding: "8px", zIndex: 1 }}>
-        <div
-          style={{
-            background: "rgba(255, 255, 255, 0.9)",
-            padding: "8px",
-            borderRadius: "4px",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
-            maxWidth: "200px",
-          }}
-        >
-          <strong>Legend (AOI):</strong>
-          {Array.from(new Set(nodes.filter(n => n.type === "aoi").map(n => n.aoi))).map((aoi) => (
-            <div key={aoi} style={{ display: "flex", alignItems: "center", marginTop: "4px" }}>
-              <div
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  backgroundColor: nodeColor({ type: "aoi", aoi }),
-                  marginRight: "6px",
-                  borderRadius: "2px",
-                }}
-              />
-              <span style={{ fontSize: "0.85rem" }}>{aoi}</span>
-            </div>
-          ))}
-        </div>
+    <div style={{ position: "relative", background: "#181818", borderRadius: 16, boxShadow: "0 4px 24px 0 rgba(33,150,243,0.10)", padding: 16 }}>
+      {/* Legend */}
+      <div style={{ position: "absolute", top: 12, left: 12, padding: "8px", zIndex: 1, background: "rgba(24,24,24,0.95)", borderRadius: 8, boxShadow: "0 1px 8px #000", color: '#fff', fontFamily: 'Inter,Roboto,sans-serif', fontWeight: 700 }}>
+        <div style={{ marginBottom: 6 }}><strong>Legend (AOI):</strong></div>
+        {aoiNodes.map((aoiNode, idx) => (
+          <div key={aoiNode.aoi} style={{ display: "flex", alignItems: "center", marginTop: "4px" }}>
+            <div
+              style={{
+                width: "18px",
+                height: "18px",
+                backgroundColor: aoiNode.color,
+                marginRight: "10px",
+                borderRadius: "50%",
+                border: '2px solid #fff',
+                boxShadow: `0 0 8px 2px ${aoiNode.color}99`
+              }}
+            />
+            <span style={{ fontSize: "1.05rem", fontWeight: 700 }}>{aoiNode.aoi}</span>
+          </div>
+        ))}
       </div>
-
       <ForceGraph2D
         ref={fgRef}
         graphData={{ nodes, links }}
         width={900}
         height={600}
+        backgroundColor="#181818"
         nodeColor={nodeColor}
         nodeLabel={nodeLabel}
-        linkColor={(link) => (highlightLinks.has(link) ? "#f00" : "#999")}
-        linkWidth={(link) => (highlightLinks.has(link) ? 2.5 : 1)}
-        nodeCanvasObjectMode={(node) => (highlightNodes.has(node.id) ? "before" : undefined)}
-        nodeCanvasObject={(node, ctx) => {
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
-          ctx.strokeStyle = "#f00";
-          ctx.lineWidth = 2;
-          ctx.stroke();
+        linkColor={(link) => (highlightLinks.has(link) ? "#fff" : link.color || "#999")}
+        linkWidth={(link) => (highlightLinks.has(link) ? 3 : 1.5)}
+        nodeCanvasObjectMode={nodeCanvasObjectMode}
+        nodeCanvasObject={nodeCanvasObject}
+        onNodeHover={(node) => {
+          setHoverNode(node || null);
+          const container = fgRef.current && fgRef.current.container && fgRef.current.container();
+          if (container) {
+            container.style.cursor = node && node.type === "person" ? "pointer" : "";
+          } else {
+            document.body.style.cursor = node && node.type === "person" ? "pointer" : "";
+          }
         }}
-        onNodeHover={(node) => setHoverNode(node || null)}
         onNodeClick={(node) => {
           if (node.type === "person" && node.uri) window.open(node.uri, "_blank");
         }}
         linkDistance={120}
-        // Enable zoom and pan interactions:
         enableZoomPanInteraction={true}
         minZoom={0.1}
         maxZoom={8}
+        cooldownTicks={100}
       />
     </div>
   );

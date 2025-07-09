@@ -8,164 +8,174 @@ import {
   Grid,
   Chip,
   Box,
-  TextField
+  TextField,
+  CardActionArea
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import "./Years.css";
 
-// Function to group results by unique URI and combine AOI values
-const groupResults = (results) => {
-  const groups = results.reduce((acc, item) => {
-    const key = item.uri; // use URI as the unique identifier
-    if (!acc[key]) {
-      // Create new group with a set to store unique AOI values
-      acc[key] = { ...item, aois: new Set([item.aoi]) };
+// Group results by unique URI and merge repeated fields
+function groupResults(results) {
+  const grouped = {};
+  results.forEach(item => {
+    const key = item.uri;
+    if (!grouped[key]) {
+      grouped[key] = {
+        ...item,
+        parent: item.parent ? [item.parent] : [],
+        child: item.child ? [item.child] : [],
+        spouse: item.spouse ? [item.spouse] : [],
+        role: item.role ? [item.role] : [],
+      };
     } else {
-      acc[key].aois.add(item.aoi);
+      if (item.parent && !grouped[key].parent.includes(item.parent)) grouped[key].parent.push(item.parent);
+      if (item.child && !grouped[key].child.includes(item.child)) grouped[key].child.push(item.child);
+      if (item.spouse && !grouped[key].spouse.includes(item.spouse)) grouped[key].spouse.push(item.spouse);
+      if (item.role && !grouped[key].role.includes(item.role)) grouped[key].role.push(item.role);
     }
-    return acc;
-  }, {});
-  // Convert each group's AOI set to an array
-  return Object.values(groups).map((group) => ({
-    ...group,
-    aois: Array.from(group.aois),
-  }));
-};
+  });
+  return Object.values(grouped);
+}
+
+const PLACEHOLDER_IMG = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
 
 const ListView = ({ results, favorites, toggleFavorite }) => {
-  // Group the results first
-  const groupedResults = groupResults(results);
+  const [imgError, setImgError] = useState({});
 
-  // Compute a unique list of AOI values from grouped results
-  const allAOISet = new Set();
-  groupedResults.forEach((item) => {
-    item.aois.forEach((aoi) => allAOISet.add(aoi));
-  });
-  const allAOIs = Array.from(allAOISet);
+  // Group and merge results by person
+  const groupedResults = groupResults(results.filter(item => item && item.uri && item.name));
 
-  // State for filter chips and search term
-  const [selectedFilters, setSelectedFilters] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handleFilterChipToggle = (aoi) => {
-    if (selectedFilters.includes(aoi)) {
-      setSelectedFilters(selectedFilters.filter((f) => f !== aoi));
-    } else {
-      setSelectedFilters([...selectedFilters, aoi]);
-    }
+  const handleImgError = (uri) => {
+    setImgError((prev) => ({ ...prev, [uri]: true }));
   };
-
-  // Filter grouped results based on selected AOI filters (AND logic)
-  const filteredResults = groupedResults.filter((item) => {
-    if (selectedFilters.length === 0) return true;
-    return selectedFilters.every((filter) => item.aois.includes(filter));
-  });
-
-  // Apply live search filter (case-insensitive) on several fields
-  const searchFilteredResults = filteredResults.filter((item) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      item.name.toLowerCase().includes(term) ||
-      (item.bio && item.bio.toLowerCase().includes(term)) ||
-      item.birthPlace.toLowerCase().includes(term) ||
-      item.deathPlace.toLowerCase().includes(term) ||
-      item.aois.some((aoi) => aoi.toLowerCase().includes(term))
-    );
-  });
 
   return (
     <>
-      {/* Top filter section: Filter Chips on the left, Search field on the right */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 2 }}>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {allAOIs.map((aoi, index) => (
-            <Chip
-              key={index}
-              label={aoi}
-              clickable
-              color={selectedFilters.includes(aoi) ? "primary" : "default"}
-              onClick={() => handleFilterChipToggle(aoi)}
-            />
-          ))}
-        </Box>
-        <TextField
-          label="Search"
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ minWidth: 200, borderRadius: 25 }}
-        />
-      </Box>
-
-      {searchFilteredResults.length === 0 ? (
+      {groupedResults.length === 0 ? (
         <Typography variant="body1" sx={{ mt: 2 }}>
-          No records found for the selected filters and search term.
+          No records found for the selected filters.
         </Typography>
       ) : (
-        <Grid container spacing={2}>
-          {searchFilteredResults.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.uri}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="h6">{item.name}</Typography>
-                    <IconButton onClick={() => toggleFavorite(item.uri)}>
-                      {favorites[item.uri] ? (
-                        <StarIcon color="warning" />
-                      ) : (
-                        <StarBorderIcon />
-                      )}
-                    </IconButton>
-                  </Box>
-                  <Typography variant="body2">
-                    Birth: {item.birth}{" "}
-                    {item.birthPlace !== "Unknown" ? `in ${item.birthPlace}` : ""}
-                  </Typography>
-                  <Typography variant="body2">
-                    Death: {item.death}{" "}
-                    {item.deathPlace !== "Unknown" ? `in ${item.deathPlace}` : ""}
-                  </Typography>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    Areas of Interest:
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
-                    {item.aois.map((aoi, idx) => (
-                      <Chip key={idx} label={aoi} size="small" color="primary" />
-                    ))}
-                  </Box>
-                  {item.bio && (
-                    <Typography variant="body2" sx={{ fontStyle: "italic", mt: 1 }}>
-                      {item.bio}
-                    </Typography>
-                  )}
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    VRTI Link:{" "}
-                    <a
-                      href={item.uri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="fancy-link"
-                    >
-                      {item.uri.length > 30 ? item.uri.slice(0, 27) + "..." : item.uri}
-                    </a>
-                  </Typography>
-                  {item.external && (
-                    <Typography variant="body2">
-                      External Link:{" "}
-                      <a
-                        href={item.external}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="fancy-link"
+        <Grid container spacing={3}>
+          {groupedResults.map((item) => (
+            <Grid item xs={12} sm={6} md={4} key={item.uri || item.dibId || Math.random()}>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: 4,
+                  boxShadow: '0 4px 24px 0 rgba(33,150,243,0.10)',
+                  bgcolor: '#fff',
+                  p: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <Box sx={{ width: '100%', bgcolor: '#f5f7fa', display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2, pb: 0 }}>
+                  <img
+                    src={(!imgError[item.uri] && item.image) ? item.image : PLACEHOLDER_IMG}
+                    alt={item.name}
+                    style={{
+                      width: '100%',
+                      maxWidth: 220,
+                      height: 180,
+                      objectFit: 'cover',
+                      borderRadius: 12,
+                      background: '#e0e0e0',
+                      marginBottom: 8,
+                    }}
+                    onError={() => handleImgError(item.uri)}
+                  />
+                </Box>
+                <CardActionArea onClick={() => window.open(item.uri, '_blank')} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 2 }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#222', flex: 1, pr: 1, wordBreak: 'break-word' }}>{item.name}</Typography>
+                      <IconButton
+                        onClick={e => { e.stopPropagation(); toggleFavorite(item.uri); }}
+                        sx={{ ml: 1 }}
                       >
-                        {item.external.length > 30 ? item.external.slice(0, 27) + "..." : item.external}
-                      </a>
+                        {favorites[item.uri] ? (
+                          <StarIcon color="warning" />
+                        ) : (
+                          <StarBorderIcon />
+                        )}
+                      </IconButton>
+                    </Box>
+                    {item.variantName && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        <b>Also known as:</b> {item.variantName}
+                      </Typography>
+                    )}
+                    {item.role && item.role.length > 0 && (
+                      <Typography variant="body2" sx={{ mb: 0.5 }}>
+                        <b>Role/Occupation:</b> {item.role.join(', ')}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <b>Birth:</b> {item.birth} {item.birthPlace !== "Unknown" && <span>in {item.birthPlace}</span>}
                     </Typography>
-                  )}
-                </CardContent>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <b>Death:</b> {item.death} {item.deathPlace !== "Unknown" && <span>in {item.deathPlace}</span>}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <b>Gender:</b> {item.gender?.split('#')[1] || item.gender}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <b>Time Period:</b> {item.timePeriod}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <b>Active Period:</b> {item.floruitStart} - {item.floruitEnd}
+                    </Typography>
+                    {item.bioNote && (
+                      <Typography variant="body2" sx={{ mb: 0.5, fontStyle: 'italic', color: '#444' }}>
+                        <b>Bio:</b> {item.bioNote}
+                      </Typography>
+                    )}
+                    {(item.parent.length > 0 || item.child.length > 0 || item.spouse.length > 0) && (
+                      <Box sx={{ mt: 1, mb: 1 }}>
+                        {item.parent.map((p, idx) => (
+                          <Chip key={"parent-"+idx} label={`Parent: ${p}`} size="small" sx={{ mr: 1, mb: 1, bgcolor: '#e3f2fd', color: '#1976d2' }} />
+                        ))}
+                        {item.child.map((c, idx) => (
+                          <Chip key={"child-"+idx} label={`Child: ${c}`} size="small" sx={{ mr: 1, mb: 1, bgcolor: '#fce4ec', color: '#c2185b' }} />
+                        ))}
+                        {item.spouse.map((s, idx) => (
+                          <Chip key={"spouse-"+idx} label={`Spouse: ${s}`} size="small" sx={{ mr: 1, mb: 1, bgcolor: '#ede7f6', color: '#512da8' }} />
+                        ))}
+                      </Box>
+                    )}
+                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {item.wikidata && (
+                        <Chip
+                          label="Wikidata"
+                          size="small"
+                          color="primary"
+                          onClick={e => {
+                            e.stopPropagation();
+                            window.open(item.wikidata, '_blank');
+                          }}
+                          sx={{ mb: 1, cursor: 'pointer' }}
+                        />
+                      )}
+                      {item.dibId && (
+                        <Chip
+                          label="DIB ID"
+                          size="small"
+                          color="secondary"
+                          sx={{ mb: 1, cursor: 'pointer' }}
+                          onClick={e => {
+                             e.stopPropagation();
+                             const dibUrl = item.dibPage || `https://www.dib.ie/biography/${item.dibId}`;
+                             window.open(dibUrl, '_blank');
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </CardContent>
+                </CardActionArea>
               </Card>
             </Grid>
           ))}

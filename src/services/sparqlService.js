@@ -1,6 +1,6 @@
 export const fetchSparqlResults = async (query) => {
   const proxyUrl = "http://localhost:4000/sparql";
-  const targetEndpoint = "https://blazegraph.virtualtreasury.ie/blazegraph/namespace/b2022/sparql";
+  const targetEndpoint = "https://virtuoso.virtualtreasury.ie/sparql/";
 
   const response = await fetch(proxyUrl, {
     method: "POST",
