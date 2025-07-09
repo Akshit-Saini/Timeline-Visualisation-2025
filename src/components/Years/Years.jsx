@@ -112,23 +112,26 @@ const Years = () => {
               step={1}
               disableSwap
               sx={{
-                color: '#2196F3',
-                height: 6,
+                color: 'primary.main',
+                height: 8,
                 '& .MuiSlider-thumb': {
-                  borderRadius: 2,
-                  backgroundColor: '#2196F3',
+                  background: 'linear-gradient(135deg, #21CBF3 60%, #2196F3 100%)',
                   border: '2px solid #fff',
-                  width: 24,
-                  height: 24,
-                  boxShadow: '0 2px 8px rgba(33,150,243,0.2)',
+                  width: 28,
+                  height: 28,
+                  boxShadow: '0px 4px 16px rgba(33,203,243,0.18)',
+                  transition: 'all 0.3s',
+                  '&:hover': { boxShadow: '0px 0px 18px #21CBF3' },
+                },
+                '& .MuiSlider-track': {
+                  background: 'linear-gradient(90deg, #2196F3, #21CBF3, #D1C72E)',
+                  border: 'none',
+                  height: 8,
                 },
                 '& .MuiSlider-rail': {
                   opacity: 1,
                   backgroundColor: '#222',
-                },
-                '& .MuiSlider-track': {
-                  background: 'linear-gradient(90deg, #2196F3, #21CBF3)',
-                  border: 'none',
+                  height: 8,
                 },
                 '& .MuiSlider-valueLabel': {
                   background: 'rgba(33,150,243,0.95)',
@@ -137,13 +140,14 @@ const Years = () => {
                   fontWeight: 700,
                   fontSize: 16,
                   top: -32,
+                  boxShadow: '0 2px 8px #21CBF3',
                 },
               }}
               valueLabelFormat={valuetext}
               aria-labelledby="range-slider"
             />
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mb: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mb: 2, mt: 2, flexWrap: 'wrap' }}>
             <TextField
               label="Start Year"
               type="number"
@@ -152,18 +156,18 @@ const Years = () => {
               variant="outlined"
               size="small"
               sx={{
-                input: { color: "#fff", textAlign: "center", fontWeight: 600 },
-                label: { color: "#2196F3", mb: 1 },
-                ".MuiInputLabel-root": { mb: 1 },
-                ".MuiOutlinedInput-root": {
+                input: { color: '#fff', textAlign: 'center', fontWeight: 600 },
+                label: { color: '#21CBF3', mb: 1 },
+                '.MuiInputLabel-root': { mb: 1 },
+                '.MuiOutlinedInput-root': {
                   borderRadius: 2,
-                  background: "rgba(33,150,243,0.08)",
-                  borderColor: "#2196F3",
-                  color: "#fff",
+                  background: 'rgba(33,203,243,0.08)',
+                  borderColor: '#21CBF3',
+                  color: '#fff',
                 },
                 width: 140,
               }}
-              InputLabelProps={{ style: { color: "#2196F3", marginBottom: 8 }, shrink: true }}
+              InputLabelProps={{ style: { color: '#21CBF3', marginBottom: 8 }, shrink: true }}
             />
             <TextField
               label="End Year"
@@ -173,18 +177,18 @@ const Years = () => {
               variant="outlined"
               size="small"
               sx={{
-                input: { color: "#fff", textAlign: "center", fontWeight: 600 },
-                label: { color: "#2196F3", mb: 1 },
-                ".MuiInputLabel-root": { mb: 1 },
-                ".MuiOutlinedInput-root": {
+                input: { color: '#fff', textAlign: 'center', fontWeight: 600 },
+                label: { color: '#21CBF3', mb: 1 },
+                '.MuiInputLabel-root': { mb: 1 },
+                '.MuiOutlinedInput-root': {
                   borderRadius: 2,
-                  background: "rgba(33,150,243,0.08)",
-                  borderColor: "#2196F3",
-                  color: "#fff",
+                  background: 'rgba(33,203,243,0.08)',
+                  borderColor: '#21CBF3',
+                  color: '#fff',
                 },
                 width: 140,
               }}
-              InputLabelProps={{ style: { color: "#2196F3", marginBottom: 8 }, shrink: true }}
+              InputLabelProps={{ style: { color: '#21CBF3', marginBottom: 8 }, shrink: true }}
             />
           </Box>
           <Typography sx={{ color: "#bdbdbd", fontSize: 13, mb: 3 }}>
@@ -194,17 +198,18 @@ const Years = () => {
             variant="contained"
             onClick={handleExplore}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "#fff",
-              borderRadius: 3,
-              px: 4,
-              py: 1.5,
+              background: 'linear-gradient(90deg, #21CBF3, #2196F3, #D1C72E)',
+              color: '#181818',
               fontWeight: 700,
-              fontSize: "1.1rem",
-              boxShadow: "0 3px 10px 2px rgba(33, 203, 243, .15)",
-              textTransform: "none",
+              fontSize: 18,
+              px: 5,
+              py: 1.5,
+              borderRadius: 3,
+              boxShadow: '0 4px 16px 0 rgba(33,203,243,0.12)',
+              transition: 'background 0.3s, color 0.3s',
               '&:hover': {
-                background: "linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)",
+                background: 'linear-gradient(90deg, #D1C72E, #21CBF3, #2196F3)',
+                color: '#fff',
               },
             }}
           >
