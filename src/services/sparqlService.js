@@ -1,17 +1,14 @@
 export const fetchSparqlResults = async (query) => {
-  const proxyUrl = "http://localhost:4000/sparql";
-  const targetEndpoint = "https://virtuoso.virtualtreasury.ie/sparql/";
+  // Use environment variable, fallback to public endpoint
+  const SPARQL_ENDPOINT = import.meta.env.VITE_SPARQL_ENDPOINT || "https://virtuoso.virtualtreasury.ie/sparql/";
 
-  const response = await fetch(proxyUrl, {
+  const response = await fetch(SPARQL_ENDPOINT, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/sparql-query",
       "Accept": "application/sparql-results+json",
     },
-    body: JSON.stringify({
-      endpoint: targetEndpoint,
-      query: query,
-    }),
+    body: query,
   });
 
   if (!response.ok) {
