@@ -18,102 +18,94 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
   const [results, setResults] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [favorites, setFavorites] = useState({}); // { uri: true/false }
-  const [queryFromYear, setQueryFromYear] = useState(fromYear);
-  const [queryToYear, setQueryToYear] = useState(toYear);
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Wrap loadData in useCallback and include fromYear and toYear as dependencies
+  // Helper to build the SPARQL query dynamically using the original query (no GRAPH blocks)
+  const buildSparqlQuery = (fromYear, toYear) => `
+    PREFIX crm: <http://erlangen-crm.org/current/>
+    PREFIX vrti: <https://www.w3id.org/virtual-treasury/ontology#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX owl: <http://www.w3.org/2002/07/owl#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    
+    SELECT DISTINCT *
+    WHERE {
+      ?Person a crm:E21_Person;
+              crm:P2_has_type ?Gender ;
+              vrti:VRTI_ERA  ?TimePeriod .
+      OPTIONAL { ?Person crm:P1_is_identified_by ?FirstNameResource .
+                 ?FirstNameResource crm:P2_has_type vrti:Forename ;
+                                    rdfs:label ?FirstNameLabel . }
+      OPTIONAL { ?Person crm:P1_is_identified_by ?FullNameResource .
+                 ?FullNameResource crm:P2_has_type vrti:Name ;
+                                    rdfs:label ?FullNameLabel . }
+      OPTIONAL { ?Person crm:P1_is_identified_by ?Surname .
+                 ?Surname crm:P2_has_type vrti:Surname ;
+                          rdfs:label ?SurnameLabel . }
+      OPTIONAL { ?Person crm:P1_is_identified_by ?VariantNameResource .
+                 ?VariantNameResource crm:P2_has_type vrti:NameVariant ;
+                                      rdfs:label ?VariantNameLabel . }
+      OPTIONAL { ?Person crm:P62i_is_depicted_by ?Image . }
+      OPTIONAL { ?Person owl:sameAs ?WikidataPage . }
+      OPTIONAL { ?Person vrti:DIB_ID ?DIB_ID . }
+      OPTIONAL { ?Person crm:P71i_is_listed_in ?DIB_Page . }
+      OPTIONAL {
+        ?DeathEvent a crm:E69_Death;
+                    crm:P93_took_out_of_existence ?Person .
+        OPTIONAL {
+          ?DeathEvent crm:P4_has_time-span ?DeathDateResource .
+          ?DeathDateResource crm:P81a_end_of_the_begin ?DeathDateLower .
+          ?DeathDateResource crm:P82b_end_of_the_end ?DeathDateUpper .  
+        }
+        OPTIONAL {
+          ?DeathEvent crm:P7_took_place_at ?DeathPlaceResource .
+          ?DeathPlaceResource rdfs:label ?DeathPlaceLabel .
+          FILTER(LANG(?DeathPlaceLabel) = "en")
+        }
+      }
+      OPTIONAL {
+        ?BirthEvent a crm:E67_Birth;
+                    crm:P98_brought_into_life ?Person .
+        OPTIONAL {
+          ?BirthEvent crm:P4_has_time-span ?BirthDateResource .
+          ?BirthDateResource crm:P81a_end_of_the_begin ?BirthDateLower .
+          ?BirthDateResource crm:P82b_end_of_the_end ?BirthDateUpper .
+        }
+        OPTIONAL {
+          ?BirthEvent crm:P7_took_place_at ?BirthPlaceResource .
+          ?BirthPlaceResource rdfs:label ?BirthPlaceLabel .
+          FILTER(LANG(?BirthPlaceLabel) = "en")
+        }
+      }
+      ?FloruitResource crm:P2_has_type vrti:Floruit ;
+                       crm:P4_has_time-span ?FloruitDateResource ;
+                       crm:P12_occurred_in_the_presence_of ?Person .
+      ?FloruitDateResource crm:P81a_end_of_the_begin ?FloruitLower ;
+                           crm:P82b_end_of_the_end ?FloruitUpper .
+      BIND(STRAFTER(STR(?TimePeriod), "#") AS ?TimePeriodLabel)
+      FILTER(
+        (?BirthDateLower >= "${fromYear}"^^xsd:gYear && ?BirthDateLower <= "${toYear}"^^xsd:gYear) ||
+        (?BirthDateUpper >= "${fromYear}"^^xsd:gYear && ?BirthDateUpper <= "${toYear}"^^xsd:gYear) ||
+        (?DeathDateLower >= "${fromYear}"^^xsd:gYear && ?DeathDateLower <= "${toYear}"^^xsd:gYear) ||
+        (?DeathDateUpper >= "${fromYear}"^^xsd:gYear && ?DeathDateUpper <= "${toYear}"^^xsd:gYear) ||
+        (?FloruitLower >= "${fromYear}"^^xsd:gYear && ?FloruitLower <= "${toYear}"^^xsd:gYear) ||
+        (?FloruitUpper >= "${fromYear}"^^xsd:gYear && ?FloruitUpper <= "${toYear}"^^xsd:gYear)
+      )
+    }
+    ORDER BY ?FullNameLabel
+    LIMIT 100
+  `;
+
+  // Always use the latest fromYear and toYear props when exploreTrigger changes
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log('Loading data for years:', queryFromYear, queryToYear);
+    console.log('Loading data for years:', fromYear, toYear);
     try {
-      const query = `
-        PREFIX crm: <http://erlangen-crm.org/current/>
-        PREFIX vrti: <https://www.w3id.org/virtual-treasury/ontology#>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX owl: <http://www.w3.org/2002/07/owl#>
-
-        SELECT DISTINCT *
-        WHERE {
-          ?Person a crm:E21_Person;
-                  crm:P2_has_type ?Gender ;
-                  vrti:VRTI_ERA  ?TimePeriod .
-
-          OPTIONAL {
-            ?Person crm:P1_is_identified_by ?FirstNameResource .
-            ?FirstNameResource crm:P2_has_type vrti:Forename ;
-                               rdfs:label ?FirstNameLabel .
-          }
-          OPTIONAL {
-            ?Person crm:P1_is_identified_by ?FullNameResource .
-            ?FullNameResource crm:P2_has_type vrti:Name ;
-                              rdfs:label ?FullNameLabel .
-          }
-          OPTIONAL {
-            ?Person crm:P1_is_identified_by ?Surname .
-            ?Surname crm:P2_has_type vrti:Surname ;
-                     rdfs:label ?SurnameLabel .
-          }
-          OPTIONAL {
-            ?Person crm:P1_is_identified_by ?VariantNameResource .
-            ?VariantNameResource crm:P2_has_type vrti:NameVariant ;
-                                 rdfs:label ?VariantNameLabel .
-          }
-          OPTIONAL { ?Person crm:P62i_is_depicted_by ?Image . }
-          OPTIONAL { ?Person owl:sameAs ?WikidataPage . }
-          OPTIONAL { ?Person vrti:DIB_ID ?DIB_ID . }
-          OPTIONAL { ?Person crm:P71i_is_listed_in ?DIB_Page . }
-          OPTIONAL {
-            ?DeathEvent a crm:E69_Death;
-                        crm:P93_took_out_of_existence ?Person .
-            OPTIONAL {
-              ?DeathEvent crm:P4_has_time-span ?DeathDateResource .
-              ?DeathDateResource crm:P81a_end_of_the_begin ?DeathDateLower .
-              ?DeathDateResource crm:P82b_end_of_the_end ?DeathDateUpper .  
-            }
-            OPTIONAL {
-              ?DeathEvent crm:P7_took_place_at ?DeathPlaceResource .
-              ?DeathPlaceResource rdfs:label ?DeathPlaceLabel .
-              FILTER(LANG(?DeathPlaceLabel) = "en")
-            }
-          }
-          OPTIONAL {
-            ?BirthEvent a crm:E67_Birth;
-                        crm:P98_brought_into_life ?Person .
-            OPTIONAL {
-              ?BirthEvent crm:P4_has_time-span ?BirthDateResource .
-              ?BirthDateResource crm:P81a_end_of_the_begin ?BirthDateLower .
-              ?BirthDateResource crm:P82b_end_of_the_end ?BirthDateUpper .
-            }
-            OPTIONAL {
-              ?BirthEvent crm:P7_took_place_at ?BirthPlaceResource .
-              ?BirthPlaceResource rdfs:label ?BirthPlaceLabel .
-              FILTER(LANG(?BirthPlaceLabel) = "en")
-            }
-          }
-          ?FloruitResource crm:P2_has_type vrti:Floruit ;
-                           crm:P4_has_time-span ?FloruitDateResource ;
-                           crm:P12_occurred_in_the_presence_of ?Person .
-          ?FloruitDateResource crm:P81a_end_of_the_begin ?FloruitLower ;
-                               crm:P82b_end_of_the_end ?FloruitUpper .
-          BIND(STRAFTER(STR(?TimePeriod), "#") AS ?TimePeriodLabel)
-          FILTER(
-            (?BirthDateLower >= "${queryFromYear}"^^xsd:gYear && ?BirthDateLower <= "${queryToYear}"^^xsd:gYear) ||
-            (?BirthDateUpper >= "${queryFromYear}"^^xsd:gYear && ?BirthDateUpper <= "${queryToYear}"^^xsd:gYear) ||
-            (?DeathDateLower >= "${queryFromYear}"^^xsd:gYear && ?DeathDateLower <= "${queryToYear}"^^xsd:gYear) ||
-            (?DeathDateUpper >= "${queryFromYear}"^^xsd:gYear && ?DeathDateUpper <= "${queryToYear}"^^xsd:gYear) ||
-            (?FloruitLower >= "${queryFromYear}"^^xsd:gYear && ?FloruitLower <= "${queryToYear}"^^xsd:gYear) ||
-            (?FloruitUpper >= "${queryFromYear}"^^xsd:gYear && ?FloruitUpper <= "${queryToYear}"^^xsd:gYear)
-          )
-        }
-        ORDER BY ?FullNameLabel
-        LIMIT 100
-      `;
-
+      const query = buildSparqlQuery(fromYear, toYear);
       const data = await fetchSparqlResults(query);
       console.log('Raw data from fetchSparqlResults:', data);
       const parsedResults = (data.results?.bindings || [])
@@ -147,16 +139,14 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
       setError("Failed to fetch data. Please check the SPARQL endpoint and query.");
       setLoading(false);
     }
-  }, [queryFromYear, queryToYear]);
+  }, [fromYear, toYear]);
 
   useEffect(() => {
     if (exploreTrigger > 0) {
-      setQueryFromYear(fromYear);
-      setQueryToYear(toYear);
       loadData();
     }
     // eslint-disable-next-line
-  }, [exploreTrigger]);
+  }, [exploreTrigger, loadData]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -180,7 +170,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
 
   const handleDownload = () => {
     const csvString = generateCSV(filteredResults, filters); // Use filteredResults
-    downloadCSV(csvString, `beyond_timeline_${queryFromYear}_${queryToYear}.csv`);
+    downloadCSV(csvString, `beyond_timeline_${fromYear}_${toYear}.csv`);
   };
 
   const handleShare = () => {
@@ -199,7 +189,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
         // This might be complex depending on how elements are hidden.
         // For now, we assume visible elements are sufficient.
 
-        generateSnapshot(elementId, `beyond_timeline_${queryFromYear}_${queryToYear}.png`);
+        generateSnapshot(elementId, `beyond_timeline_${fromYear}_${toYear}.png`);
 
          // Revert styles after snapshot if they were changed
     } else {
