@@ -1,38 +1,34 @@
 // cors-proxy.js
-import express from 'express';
-import cors from 'cors';
-import fetch from 'node-fetch';
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
-const PORT = 4000;
+app.use(cors({
+  origin: 'https://beyond2022.vercel.app'
+}));
+app.use(express.text({ type: '*/*' }));
 
-app.use(cors());
-app.use(express.json());
-
-app.post('/sparql', async (req, res) => {
-  const { endpoint, query } = req.body;
-
+app.all('/sparql', async (req, res) => {
+  const url = 'https://virtuoso-deploy-production.up.railway.app/sparql';
+  const method = req.method;
+  const headers = { ...req.headers };
+  delete headers['host'];
   try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        // This matches what SPARQL endpoints like Blazegraph expect
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/sparql-results+json',
-      },
-      body: `query=${encodeURIComponent(query)}`, // encode query properly
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: req.method === 'GET' ? undefined : req.body
     });
-
-    const text = await response.text();
-    console.log('Response:', text);
-    
-    res.send(text);
-  } catch (err) {
-    console.error('Proxy fetch failed:', err);
-    res.status(500).send('Proxy error');
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== 'content-encoding') res.setHeader(key, value);
+    });
+    response.body.pipe(res);
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`CORS Proxy running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
