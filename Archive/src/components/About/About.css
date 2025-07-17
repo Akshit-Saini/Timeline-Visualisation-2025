@@ -1,0 +1,56 @@
+.about-hero {
+    background-image: url('../../../public/pic/banner-page1.png');
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+    padding: 150px 20px;
+    color: white;
+    position: relative;
+  }
+  
+  .about-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0,0,0,0.7);
+  }
+  
+  .about-title {
+    color: #D1C72E;
+    font-weight: bold;
+    font-size: 3rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 1.2s ease;
+  }
+  
+  .about-content {
+    margin: 60px auto;
+    max-width: 900px;
+  }
+  
+  .about-section {
+    margin-bottom: 50px;
+    text-align: center;
+  }
+  
+  .about-section h4 {
+    color: #D1C72E;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  .about-section p {
+    color: #444;
+    line-height: 1.8;
+    font-size: 1.1rem;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }

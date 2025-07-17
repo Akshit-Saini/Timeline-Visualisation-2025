@@ -1,0 +1,156 @@
+.years-hero {
+    background-image: url('../../../public/pic/banner-page1.png');
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+    padding: 130px 20px;
+    color: white;
+    position: relative;
+  }
+  
+  .years-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .years-title {
+    color: #D1C72E;
+    font-weight:normal;
+    letter-spacing: 1px !important;
+    font-size: 3.8rem !important;
+    margin-bottom: 30px !important;
+    animation: fadeIn 1.5s ease !important;
+  }
+  
+  .years-subtitle {
+    margin-top: 15px;
+    color: #ddd;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .years-card {
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(6px);
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin: 50px auto;
+    max-width: 800px;
+  }
+  
+  .years-card-title {
+    color: #D1C72E;
+    font-weight: bold;
+    font-size: 1.8rem;
+  }
+  
+  .years-instruction {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .years-instruction-sub {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #777;
+  }
+  
+  .range-inputs {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+  }
+  
+  .year-input {
+    width: 120px;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .explore-btn {
+    margin-top: 25px;
+    background-color: #283593;
+    color: white;
+    padding: 10px 25px;
+    border: 2px solid #D1C72E;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .explore-btn:hover {
+    background-color: #1a237e;
+    transform: scale(1.05);
+  }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .year-input-box {
+    width: 140px;
+    padding: 12px;
+    border: 2px solid #D1C72E;
+    border-radius: 10px;
+    background: #f9f9f9;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .year-input-box:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: #b3a611;
+    box-shadow: 0 0 12px rgba(209, 199, 46, 0.6);
+  }
+
+  .results-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-top: 30px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  }
+  
+  .results-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .result-item {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .result-item:last-child {
+    border-bottom: none;
+  }
+
+  .fancy-link {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .fancy-link:hover {
+    text-decoration: underline;
+  }
+
+  .vis-time-axis .vis-text{
+    color: #ffffff !important;
+  }

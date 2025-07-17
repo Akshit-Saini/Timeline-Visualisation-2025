@@ -5,7 +5,7 @@ import cors from 'cors';
 const app = express();
 const SPARQL_ENDPOINT = 'https://virtuoso.virtualtreasury.ie/sparql/';
 
-app.use(cors());
+app.use(cors('*'));
 app.use(express.json());
 
 app.post('/api/sparql', async (req, res) => {

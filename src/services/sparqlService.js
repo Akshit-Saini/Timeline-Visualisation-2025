@@ -1,31 +1,16 @@
-const BACKEND_API = import.meta.env.VITE_SPARQL_ENDPOINT || 'http://localhost:4000/sparql';
+const BACKEND_API = 'https://vrti-demo.walter-wm.de/virtuoso/sparql';
 
 export const fetchSparqlResults = async (query) => {
-  // If using the Virtuoso endpoint directly, send the query as raw text
-  const isVirtuoso = BACKEND_API.includes('virtuoso.virtualtreasury.ie');
-  const fetchUrl = BACKEND_API;
-  const fetchOptions = isVirtuoso
-    ? {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/sparql-query",
-          "Accept": "application/sparql-results+json",
-        },
-        body: query,
-      }
-    : {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/sparql-results+json",
-        },
-        body: JSON.stringify({
-          endpoint: 'https://virtuoso.virtualtreasury.ie/sparql/',
-          query
-        }),
-      };
+  const fetchOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "application/sparql-results+json",
+    },
+    body: new URLSearchParams({ query }).toString(),
+  };
 
-  const response = await fetch(fetchUrl, fetchOptions);
+  const response = await fetch(BACKEND_API, fetchOptions);
   if (!response.ok) throw new Error(`SPARQL fetch failed with status ${response.status}`);
   const text = await response.text();
   try {
