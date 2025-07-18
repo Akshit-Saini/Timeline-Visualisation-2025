@@ -96,7 +96,6 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
       )
     }
     ORDER BY ?FullNameLabel
-    LIMIT 100
   `;
 
   // Only load data when exploreTrigger changes (Explore button clicked)

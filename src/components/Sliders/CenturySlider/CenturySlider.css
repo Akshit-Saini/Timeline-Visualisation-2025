@@ -118,17 +118,19 @@
   font-weight: 500;
   border-radius: 7px;
   padding: 6px 8px;
-  margin: 7px auto 0 auto;
+  margin: 14px auto 0 auto;
   max-width: 96%;
   box-shadow: 0 1px 4px #21CBF344;
   opacity: 0;
   pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 70%;
-  transform: translate(-50%, 0);
+  position: static;
+  left: unset;
+  top: unset;
+  transform: none;
   transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1);
   z-index: 3;
+  display: block;
+  text-align: center;
 }
 .century-hovered .century-funfact, .century-card:hover .century-funfact {
   opacity: 1;
