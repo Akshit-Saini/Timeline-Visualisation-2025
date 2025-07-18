@@ -106,8 +106,7 @@ const FancySlider = ({ onCenturySelect }) => {
           >
             <div className="century-card">
               <div className="century-number-main">{item.watermark}</div>
-              <h3 className="century-label">{item.label}</h3>
-              {/* Stats */}
+              {/* Top Role */}
               {stats[item.label] && (
                 <div className="century-stats">
                   <span>Top role: {stats[item.label].topRole}</span>
