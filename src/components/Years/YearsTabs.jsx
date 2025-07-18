@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Box, Container, Tabs, Tab, AppBar, Button, Grid, Typography, CircularProgress, Fade } from "@mui/material";
+import { Box, Container, Tabs, Tab, AppBar, Button, Grid, Typography, CircularProgress, Fade, Chip } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ShareIcon from "@mui/icons-material/Share";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
@@ -99,7 +99,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
     LIMIT 100
   `;
 
-  // Always use the latest fromYear and toYear props when exploreTrigger changes
+  // Only load data when exploreTrigger changes (Explore button clicked)
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -139,7 +139,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
       setError("Failed to fetch data. Please check the SPARQL endpoint and query.");
       setLoading(false);
     }
-  }, [fromYear, toYear]);
+  }, []); // Remove fromYear and toYear from dependencies
 
   useEffect(() => {
     if (exploreTrigger > 0) {
@@ -291,10 +291,38 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
           variant="scrollable"
           scrollButtons="auto"
         >
-          <Tab label="Timeline View" />
-          <Tab label="List View" />
-          <Tab label="Charts" />
-          <Tab label="Time Series" />
+          <Tab 
+            label="Timeline View" 
+            disabled={!dataLoaded}
+            sx={{ 
+              opacity: dataLoaded ? 1 : 0.5,
+              '&.Mui-disabled': { opacity: 0.5 }
+            }}
+          />
+          <Tab 
+            label="List View" 
+            disabled={!dataLoaded}
+            sx={{ 
+              opacity: dataLoaded ? 1 : 0.5,
+              '&.Mui-disabled': { opacity: 0.5 }
+            }}
+          />
+          <Tab 
+            label="Charts" 
+            disabled={!dataLoaded}
+            sx={{ 
+              opacity: dataLoaded ? 1 : 0.5,
+              '&.Mui-disabled': { opacity: 0.5 }
+            }}
+          />
+          <Tab 
+            label="Time Series" 
+            disabled={!dataLoaded}
+            sx={{ 
+              opacity: dataLoaded ? 1 : 0.5,
+              '&.Mui-disabled': { opacity: 0.5 }
+            }}
+          />
            {/* Temporarily hide Map View again until coordinate issue is resolved */}
           {/* <Tab label="Map View" /> */}
         </Tabs>
@@ -304,25 +332,192 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
         {dataLoaded && <FilterPanel data={results} onFilterChange={handleFilterChange} />}
 
         <Box id={`tab-content-${activeTab}`}>
-          {activeTab === 0 && <TimelineView results={filteredResults} />}
-          {activeTab === 1 && (
-            <ListView
-              results={filteredResults}
-              favorites={favorites}
-              toggleFavorite={toggleFavorite}
-            />
+          {!dataLoaded && !loading && (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              minHeight: '500px',
+              textAlign: 'center',
+              color: 'text.secondary',
+              p: 4
+            }}>
+              <Typography variant="h3" sx={{ 
+                mb: 3, 
+                background: 'linear-gradient(45deg, #2196F3, #21CBF3, #D1C72E)',
+                backgroundClip: 'text',
+                textFillColor: 'transparent',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 700
+              }}>
+                Discover Irish History
+              </Typography>
+              
+              <Typography variant="h6" sx={{ 
+                mb: 4, 
+                maxWidth: '700px',
+                color: 'rgba(255,255,255,0.9)',
+                lineHeight: 1.6
+              }}>
+                Explore over 1,000 years of Irish historical records, from the Norman invasion to the 20th century. 
+                Discover people, events, and connections that shaped Ireland's rich history.
+              </Typography>
+
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 4, 
+                maxWidth: '900px',
+                width: '100%',
+                mb: 4
+              }}>
+                <Box sx={{ 
+                  p: 3, 
+                  border: '2px solid rgba(33,150,243,0.3)', 
+                  borderRadius: 3,
+                  background: 'rgba(33,150,243,0.05)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <Typography variant="h5" sx={{ color: '#2196F3', mb: 2, fontWeight: 600 }}>
+                    📅 Timeline View
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255,255,255,0.8)' }}>
+                    Visualize historical events chronologically with interactive timeline
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <Chip label="Birth Events" size="small" sx={{ bgcolor: 'rgba(33,150,243,0.2)' }} />
+                    <Chip label="Death Events" size="small" sx={{ bgcolor: 'rgba(33,150,243,0.2)' }} />
+                    <Chip label="Floruit Periods" size="small" sx={{ bgcolor: 'rgba(33,150,243,0.2)' }} />
+                  </Box>
+                </Box>
+
+                <Box sx={{ 
+                  p: 3, 
+                  border: '2px solid rgba(33,203,243,0.3)', 
+                  borderRadius: 3,
+                  background: 'rgba(33,203,243,0.05)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <Typography variant="h5" sx={{ color: '#21CBF3', mb: 2, fontWeight: 600 }}>
+                    📋 List View
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255,255,255,0.8)' }}>
+                    Browse detailed biographical records with images and links
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <Chip label="Biographies" size="small" sx={{ bgcolor: 'rgba(33,203,243,0.2)' }} />
+                    <Chip label="Images" size="small" sx={{ bgcolor: 'rgba(33,203,243,0.2)' }} />
+                    <Chip label="Wikidata Links" size="small" sx={{ bgcolor: 'rgba(33,203,243,0.2)' }} />
+                  </Box>
+                </Box>
+
+                <Box sx={{ 
+                  p: 3, 
+                  border: '2px solid rgba(209,199,46,0.3)', 
+                  borderRadius: 3,
+                  background: 'rgba(209,199,46,0.05)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <Typography variant="h5" sx={{ color: '#D1C72E', mb: 2, fontWeight: 600 }}>
+                    📊 Charts
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255,255,255,0.8)' }}>
+                    Analyze demographic patterns and historical trends
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <Chip label="Gender Distribution" size="small" sx={{ bgcolor: 'rgba(209,199,46,0.2)' }} />
+                    <Chip label="Geographic Analysis" size="small" sx={{ bgcolor: 'rgba(209,199,46,0.2)' }} />
+                    <Chip label="Time Periods" size="small" sx={{ bgcolor: 'rgba(209,199,46,0.2)' }} />
+                  </Box>
+                </Box>
+
+                <Box sx={{ 
+                  p: 3, 
+                  border: '2px solid rgba(255,152,0,0.3)', 
+                  borderRadius: 3,
+                  background: 'rgba(255,152,0,0.05)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <Typography variant="h5" sx={{ color: '#FF9800', mb: 2, fontWeight: 600 }}>
+                    📈 Time Series
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255,255,255,0.8)' }}>
+                    Explore temporal patterns and historical developments
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <Chip label="Population Trends" size="small" sx={{ bgcolor: 'rgba(255,152,0,0.2)' }} />
+                    <Chip label="Event Frequency" size="small" sx={{ bgcolor: 'rgba(255,152,0,0.2)' }} />
+                    <Chip label="Historical Periods" size="small" sx={{ bgcolor: 'rgba(255,152,0,0.2)' }} />
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                borderRadius: 2,
+                background: 'rgba(255,255,255,0.02)',
+                maxWidth: '600px'
+              }}>
+                <Typography variant="h6" sx={{ color: '#D1C72E', mb: 2 }}>
+                  🎯 What You Can Discover
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+                  • <strong>Historical Figures:</strong> Kings, Scholars, Artists and ordinary people from Irish history<br/>
+                  • <strong>Family Connections:</strong> Genealogical relationships and Family trees<br/>
+                  • <strong>Geographic Data:</strong> Birth and death locations across Ireland<br/>
+                  • <strong>Time Periods:</strong> From Norman invasion (1169) to modern era<br/>
+                  • <strong>External Links:</strong> Connect to Wikidata, DIB (Dictionary of Irish Biography) and more
+                </Typography>
+              </Box>
+            </Box>
           )}
-          {activeTab === 2 && <DataCharts data={filteredResults} />}
-          {activeTab === 3 && <TimeSeriesView data={filteredResults} />}
-           {/* Temporarily hide Map View rendering */}
-          {/* {activeTab === 6 && <MapView data={filteredResults} />} */}
+          
+          {dataLoaded && (
+            <>
+              {activeTab === 0 && <TimelineView results={filteredResults} />}
+              {activeTab === 1 && (
+                <ListView
+                  results={filteredResults}
+                  favorites={favorites}
+                  toggleFavorite={toggleFavorite}
+                />
+              )}
+              {activeTab === 2 && <DataCharts data={filteredResults} />}
+              {activeTab === 3 && <TimeSeriesView data={filteredResults} />}
+            </>
+          )}
         </Box>
 
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="body2" color="textSecondary">
-            Data Loaded: {dataLoaded ? 'Yes' : 'No'} | Total Results: {results.length} | Filtered Results: {filteredResults.length}
-          </Typography>
-        </Box>
+        {dataLoaded && (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="textSecondary">
+              Total Results: {results.length} | Filtered Results: {filteredResults.length}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
