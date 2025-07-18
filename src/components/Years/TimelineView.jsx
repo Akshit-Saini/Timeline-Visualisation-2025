@@ -496,7 +496,7 @@ const TimelineView = ({ results }) => {
           fontWeight: 700,
           textShadow: '0 1px 2px rgba(0,0,0,0.3)'
         }}>
-          Historical Timeline ({uniqueResults.length} Records)
+          Historical Timeline 
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -589,4 +589,7 @@ const TimelineView = ({ results }) => {
   );
 };
 
-export default TimelineView;
+export default React.memo(TimelineView, (prevProps, nextProps) => {
+  // Only re-render if results actually change
+  return prevProps.results === nextProps.results;
+});

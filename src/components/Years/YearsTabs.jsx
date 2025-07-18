@@ -139,7 +139,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
       setError("Failed to fetch data. Please check the SPARQL endpoint and query.");
       setLoading(false);
     }
-  }, []); // Remove fromYear and toYear from dependencies
+  }, [fromYear, toYear]);
 
   useEffect(() => {
     if (exploreTrigger > 0) {

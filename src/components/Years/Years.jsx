@@ -1,9 +1,10 @@
 // Years.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, TextField, Paper, Slider } from "@mui/material";
 import Header from "../Header/Header";
 import "./Years.css";
 import YearsTabs from "./YearsTabs"; // Import your multi-tab view
+import { useLocation } from "react-router-dom";
 
 const minYear = 121;
 const maxYear = 2021;
@@ -14,28 +15,46 @@ function valuetext(value) {
 }
 
 const Years = () => {
+  // pendingYearRange is for the slider UI, yearRange is for the committed search
+  const [pendingYearRange, setPendingYearRange] = useState([310, 510]);
   const [yearRange, setYearRange] = useState([310, 510]);
   const [exploreTrigger, setExploreTrigger] = useState(0);
+  const location = useLocation();
+
+  // Prefill slider and auto-explore if navigated from Century page
+  useEffect(() => {
+    if (location.state && (location.state.fromYear && location.state.toYear)) {
+      const from = parseInt(location.state.fromYear, 10);
+      const to = parseInt(location.state.toYear, 10);
+      setPendingYearRange([from, to]);
+      setYearRange([from, to]);
+      if (location.state.autoExplore) {
+        setTimeout(() => setExploreTrigger((prev) => prev + 1), 200); // slight delay for UI
+      }
+    }
+    // eslint-disable-next-line
+  }, [location.state]);
 
   const handleSliderChange = (event, newValue) => {
-    setYearRange(newValue);
+    setPendingYearRange(newValue);
   };
 
   const handleFromChange = (e) => {
     let val = parseInt(e.target.value, 10);
     if (isNaN(val)) val = minYear;
-    val = Math.max(minYear, Math.min(val, yearRange[1]));
-    setYearRange([val, yearRange[1]]);
+    val = Math.max(minYear, Math.min(val, pendingYearRange[1]));
+    setPendingYearRange([val, pendingYearRange[1]]);
   };
 
   const handleToChange = (e) => {
     let val = parseInt(e.target.value, 10);
     if (isNaN(val)) val = maxYear;
-    val = Math.min(maxYear, Math.max(val, yearRange[0]));
-    setYearRange([yearRange[0], val]);
+    val = Math.min(maxYear, Math.max(val, pendingYearRange[0]));
+    setPendingYearRange([pendingYearRange[0], val]);
   };
 
   const handleExplore = () => {
+    setYearRange(pendingYearRange);
     setExploreTrigger((prev) => prev + 1);
   };
 
@@ -104,7 +123,7 @@ const Years = () => {
           <Box sx={{ px: { xs: 0, md: 2 }, mt: 4, mb: 3 }}>
             <Slider
               getAriaLabel={() => 'Year range'}
-              value={yearRange}
+              value={pendingYearRange}
               onChange={handleSliderChange}
               valueLabelDisplay="on"
               min={minYear}
@@ -151,7 +170,7 @@ const Years = () => {
             <TextField
               label="Start Year"
               type="number"
-              value={yearRange[0]}
+              value={pendingYearRange[0]}
               onChange={handleFromChange}
               variant="outlined"
               size="small"
@@ -172,7 +191,7 @@ const Years = () => {
             <TextField
               label="End Year"
               type="number"
-              value={yearRange[1]}
+              value={pendingYearRange[1]}
               onChange={handleToChange}
               variant="outlined"
               size="small"

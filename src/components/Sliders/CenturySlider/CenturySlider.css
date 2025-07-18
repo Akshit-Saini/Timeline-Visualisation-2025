@@ -59,3 +59,97 @@
     color: #D1C72E;
     text-align: center;
   }
+
+.century-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(33, 150, 243, 0.10);
+  padding: 18px 12px 24px 12px;
+  text-align: center;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1);
+  cursor: pointer;
+  position: relative;
+  min-height: 340px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.century-card:hover, .century-hovered .century-card {
+  transform: scale(1.06) translateY(-8px);
+  box-shadow: 0 8px 32px 0 #21CBF3, 0 0 24px #D1C72E44;
+  z-index: 2;
+}
+.century-img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(33,150,243,0.08);
+  margin-bottom: 12px;
+  height: unset;
+  object-fit: unset;
+  position: unset;
+  z-index: unset;
+}
+.century-card .century-img::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.18) 100%);
+  border-radius: 10px;
+  z-index: 2;
+  pointer-events: none;
+}
+.century-label {
+  color: #D1C72E;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px #fff8;
+}
+.century-stats {
+  color: #2196F3;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.century-funfact {
+  background: linear-gradient(90deg, #21CBF3 0%, #D1C72E 100%);
+  color: #181818;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 7px;
+  padding: 6px 8px;
+  margin: 7px auto 0 auto;
+  max-width: 96%;
+  box-shadow: 0 1px 4px #21CBF344;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  transform: translate(-50%, 0);
+  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+  z-index: 3;
+}
+.century-hovered .century-funfact, .century-card:hover .century-funfact {
+  opacity: 1;
+  pointer-events: auto;
+}
+.century-mini-chart {
+  width: 80%;
+  height: 28px;
+  margin: 18px auto 0 auto;
+  background: repeating-linear-gradient(90deg, #21CBF3 0 10%, #D1C72E 10% 20%, #fff0 20% 100%);
+  border-radius: 6px;
+  opacity: 0.18;
+}
+.century-number-main {
+  font-size: 4.2rem;
+  font-weight: 900;
+  color: #D1C72E;
+  text-align: center;
+  margin: 0 auto 10px auto;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  text-shadow: 0 2px 12px #0002, 0 1px 0 #fff8;
+  user-select: none;
+}
