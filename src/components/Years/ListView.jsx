@@ -121,7 +121,7 @@ const ListView = ({ results, favorites, toggleFavorite }) => {
                       <b>Death:</b> {item.death} {item.deathPlace !== "Unknown" && <span>in {item.deathPlace}</span>}
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      <b>Gender:</b> {item.gender?.split('#')[1] || item.gender}
+                      <b>Gender:</b> {item.gender}
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 0.5 }}>
                       <b>Time Period:</b> {item.timePeriod}

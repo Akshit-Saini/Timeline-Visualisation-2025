@@ -14,6 +14,26 @@ import DataCharts from "../Visualizations/Charts/DataCharts";
 import TimeSeriesView from "../Visualizations/TimeSeries/TimeSeriesView";
 // import MapView from "./MapView"; // Keep imported but commented out
 
+// Utility function to convert ontology URLs to readable labels
+const convertOntologyUrlToLabel = (url) => {
+  if (!url) return 'Other';
+  // Known gender ontology URLs
+  const maleUrls = [
+    'http://www.wikidata.org/entity/Q6581097', // Male
+    'http://schema.org/Male',
+    'Male', 'male'
+  ];
+  const femaleUrls = [
+    'http://www.wikidata.org/entity/Q6581072', // Female
+    'http://schema.org/Female',
+    'Female', 'female'
+  ];
+  const val = url.split('#').pop().split('/').pop().toLowerCase();
+  if (maleUrls.some(m => val === m.toLowerCase() || url.toLowerCase() === m.toLowerCase())) return 'Male';
+  if (femaleUrls.some(f => val === f.toLowerCase() || url.toLowerCase() === f.toLowerCase())) return 'Female';
+  return 'Other';
+};
+
 const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
   const [results, setResults] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
@@ -96,6 +116,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
       )
     }
     ORDER BY ?FullNameLabel
+    LIMIT 700
   `;
 
   // Only load data when exploreTrigger changes (Explore button clicked)
@@ -112,7 +133,7 @@ const YearsTabs = ({ fromYear, toYear, exploreTrigger }) => {
           uri: item.Person?.value,
           name: item.FullNameLabel?.value || '',
           variantName: item.VariantNameLabel?.value || '',
-          gender: item.Gender?.value || '',
+          gender: convertOntologyUrlToLabel(item.Gender?.value),
           timePeriod: item.TimePeriodLabel?.value || '',
           birth: item.BirthDateLower?.value || '',
           birthPlace: item.BirthPlaceLabel?.value || '',

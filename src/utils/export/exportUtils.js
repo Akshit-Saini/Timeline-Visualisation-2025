@@ -1,5 +1,13 @@
 import html2canvas from 'html2canvas';
 
+// Utility function to convert ontology URLs to readable labels
+const convertOntologyUrlToLabel = (url) => {
+  if (!url) return '';
+  // Extract the part after the last '#' or '/' and capitalize it
+  const label = url.split('#').pop() || url.split('/').pop();
+  return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+};
+
 export const generateCSV = (data, filters = {}) => {
   // Apply filters to data
   let filteredData = [...data];
@@ -64,7 +72,7 @@ export const generateCSV = (data, filters = {}) => {
       `"${item.birth || ''}"`,
       `"${item.death || ''}"`,
       `"${item.timePeriod || ''}"`,
-      `"${item.gender || ''}"`,
+      `"${convertOntologyUrlToLabel(item.gender) || ''}"`,
       `"${item.birthPlace || ''}"`,
       `"${item.deathPlace || ''}"`,
       `"${item.role || ''}"`,

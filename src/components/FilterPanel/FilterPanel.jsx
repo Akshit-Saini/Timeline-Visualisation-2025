@@ -19,6 +19,14 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
+// Utility function to convert ontology URLs to readable labels
+const convertOntologyUrlToLabel = (url) => {
+  if (!url) return '';
+  // Extract the part after the last '#' or '/' and capitalize it
+  const label = url.split('#').pop() || url.split('/').pop();
+  return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+};
+
 const FilterPanel = ({ data, onFilterChange }) => {
   const [filters, setFilters] = useState({
     timePeriod: [],
@@ -138,7 +146,7 @@ const FilterPanel = ({ data, onFilterChange }) => {
               {values.map(value => (
                 <Chip
                   key={value}
-                  label={value}
+                  label={convertOntologyUrlToLabel(value)}
                   onClick={() => handleFilterChange(category, value)}
                   color={filters[category].includes(value) ? 'primary' : 'default'}
                   sx={{ 

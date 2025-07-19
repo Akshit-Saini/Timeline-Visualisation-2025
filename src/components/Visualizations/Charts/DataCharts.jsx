@@ -50,11 +50,11 @@ const DataCharts = ({ data }) => {
               Other: 0
             };
           }
-          // Normalize gender values
+          // Handle converted gender labels (Male, Female) or raw ontology URLs
           const normalizedGender = person.gender.trim().toLowerCase();
-          if (normalizedGender === 'male') {
+          if (normalizedGender === 'male' || normalizedGender.includes('male')) {
             periodGenderCount[person.timePeriod].Male++;
-          } else if (normalizedGender === 'female') {
+          } else if (normalizedGender === 'female' || normalizedGender.includes('female')) {
             periodGenderCount[person.timePeriod].Female++;
           } else {
             periodGenderCount[person.timePeriod].Other++;
